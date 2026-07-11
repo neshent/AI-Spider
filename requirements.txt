@@ -1,0 +1,7 @@
+# Core harness has zero required dependencies (pure standard library).
+#
+# Optional, only needed if you want real backends instead of the offline
+# MockLLMBackend / stub tools:
+
+# anthropic>=0.34.0      # for AnthropicLLMBackend (real reasoning)
+# pytest>=7.0.0          # to run tests/test_harness.py

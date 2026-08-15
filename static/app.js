@@ -132,6 +132,16 @@ async function probeLMStudio() {
 /* ── DOM helpers ─────────────────────────────────────────────────────────── */
 function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
 
+function fillInput(text) {
+  inputEl.value = text;
+  inputEl.focus();
+}
+
+function hideWelcome() {
+  const card = document.querySelector('.welcome-card');
+  if (card) card.remove();
+}
+
 function addMsg(text, cls) {
   const d = document.createElement('div');
   d.className = `message ${cls}`; d.textContent = text;
@@ -189,6 +199,7 @@ async function sendMessage() {
   inputEl.value = '';
   sendBtn.disabled = true;
   stopBtn.classList.add('visible');
+  hideWelcome();
 
   const model    = modelSel.value;
   const provider = providerOf(model);

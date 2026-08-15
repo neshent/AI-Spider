@@ -38,7 +38,16 @@
 <div class="layout">
   <div class="chat-panel">
     <div class="messages" id="messages">
-      <div class="message assistant">Hello! I'm Lei. How can I help you?</div>
+      <div class="welcome-card">
+        <div class="welcome-title">Lei</div>
+        <div class="welcome-sub">An AI reasoning agent. Ask me anything.</div>
+        <div class="welcome-suggestions">
+          <button class="suggest-btn" onclick="fillInput('Build a REST API in Python')">Build a REST API in Python</button>
+          <button class="suggest-btn" onclick="fillInput('What is machine learning?')">What is machine learning?</button>
+          <button class="suggest-btn" onclick="fillInput('Write a binary search algorithm')">Write a binary search algorithm</button>
+          <button class="suggest-btn" onclick="fillInput('Explain how databases work')">Explain how databases work</button>
+        </div>
+      </div>
     </div>
     <div class="input-bar">
       <input id="userInput" type="text" placeholder="Ask anything…" autocomplete="off" autofocus />

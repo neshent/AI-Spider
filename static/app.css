@@ -21,11 +21,6 @@ header {
   flex-shrink: 0;
   flex-wrap: wrap;
 }
-.logo {
-  width: 28px; height: 28px; flex-shrink: 0;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 7px;
-}
 header h1 { font-size: 15px; font-weight: 600; color: #f1f5f9; white-space: nowrap; }
 
 .model-controls { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -212,8 +207,8 @@ select:focus, .token-input:focus { border-color: #6366f1; }
   list-style: none; display: flex; align-items: center; gap: 5px;
 }
 .knowledge-section summary::marker { display: none; }
-.knowledge-section summary::before { content: "▶"; font-size: 8px; }
-details[open] summary::before      { content: "▼"; }
+.knowledge-section summary::before { content: ""; }
+details[open] summary::before      { content: ""; }
 .kform { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
 .kform input, .kform textarea {
   background: #0f1117; border: 1px solid #2d3148; border-radius: 5px;

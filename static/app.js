@@ -75,16 +75,16 @@ function updateUI() {
   lmsWrap.style.display = p === 'lmstudio' ? 'block' : 'none';
 
   if      (p === 'mock')      setBadge('offline', 'local');
-  else if (p === 'lmstudio')  setBadge(_lmsData.running ? 'server running ✓' : 'server offline', _lmsData.running ? 'set' : 'unset');
+  else if (p === 'lmstudio')  setBadge(_lmsData.running ? 'server running' : 'server offline', _lmsData.running ? 'set' : 'unset');
   else if (p === 'hf-local')  setBadge('local model', 'local');
-  else if (p === 'hf-api')    setBadge((_keys['hf-api'] || hfInput.value.trim()) ? 'token ready ✓' : 'token needed', (_keys['hf-api'] || hfInput.value.trim()) ? 'set' : 'unset');
-  else                        setBadge(_keys[p] ? 'key set ✓' : 'no key 🔒', _keys[p] ? 'set' : 'unset');
+  else if (p === 'hf-api')    setBadge((_keys['hf-api'] || hfInput.value.trim()) ? 'token ready' : 'token needed', (_keys['hf-api'] || hfInput.value.trim()) ? 'set' : 'unset');
+  else                        setBadge(_keys[p] ? 'key set' : 'no key', _keys[p] ? 'set' : 'unset');
 
-  if      (p === 'lmstudio' && !_lmsData.running) setWarn('⚠ LM Studio server not detected. Open LM Studio → Local Server tab → Start Server.');
-  else if (p === 'hf-api')                         setWarn('⚠ Requires internet connection to HuggingFace servers.');
-  else if (p === 'anthropic' && !_keys.anthropic)  setWarn('⚠ Set ANTHROPIC_API_KEY in .env to use this model.');
-  else if (p === 'openai'    && !_keys.openai)     setWarn('⚠ Set OPENAI_API_KEY in .env to use this model.');
-  else if (p === 'google'    && !_keys.google)     setWarn('⚠ Set GOOGLE_API_KEY in .env to use this model.');
+  if      (p === 'lmstudio' && !_lmsData.running) setWarn('LM Studio server not detected. Open LM Studio - Local Server tab - Start Server.');
+  else if (p === 'hf-api')                         setWarn('Requires internet connection to HuggingFace servers.');
+  else if (p === 'anthropic' && !_keys.anthropic)  setWarn('Set ANTHROPIC_API_KEY in .env to use this model.');
+  else if (p === 'openai'    && !_keys.openai)     setWarn('Set OPENAI_API_KEY in .env to use this model.');
+  else if (p === 'google'    && !_keys.google)     setWarn('Set GOOGLE_API_KEY in .env to use this model.');
   else                                              setWarn(null);
 
   if (p === 'lmstudio') updateLMSPanel(_lmsData);
@@ -121,8 +121,8 @@ async function probeLMStudio() {
     });
     const data = await res.json();
     _lmsData = data; updateLMSPanel(data);
-    setBadge(data.running ? 'server running ✓' : 'server offline', data.running ? 'set' : 'unset');
-    setWarn(data.running ? null : '⚠ LM Studio server not detected. Open LM Studio → Local Server tab → Start Server.');
+    setBadge(data.running ? 'server running' : 'server offline', data.running ? 'set' : 'unset');
+    setWarn(data.running ? null : 'LM Studio server not detected. Open LM Studio - Local Server tab - Start Server.');
   } catch (err) {
     lmsStatus.textContent = '● Error'; lmsStatus.className = 'lms-status offline';
     lmsHint.textContent = err.message;

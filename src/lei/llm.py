@@ -1,16 +1,9 @@
 """
-Pluggable LLM backend.
+Pluggable LLM backends.
 
-The Reasoning Engine in the architecture doc is model-agnostic
-(GPT-5.5 / GPT-4.1 / Llama 3 / Qwen / DeepSeek, etc). This module defines
-a minimal interface plus:
-
-  - MockLLMBackend: deterministic, offline, zero-dependency backend used
-    by default so the harness runs without any API keys or network access.
-  - AnthropicLLMBackend: thin wrapper around the Anthropic Python SDK, used
-    if `ANTHROPIC_API_KEY` is set and the `anthropic` package is installed.
-
-Select the backend in `Orchestrator(llm=...)` or via `get_default_backend()`.
+Defines LLMBackend (ABC), MockLLMBackend (offline), and
+AnthropicLLMBackend (real). Select via Orchestrator(llm=...) or
+get_default_backend() which auto-detects the best available option.
 """
 
 from __future__ import annotations
@@ -26,23 +19,19 @@ class LLMBackend(ABC):
 
     @abstractmethod
     def complete(self, prompt: str, system: Optional[str] = None) -> str:
-        """Return a text completion for the given prompt."""
         raise NotImplementedError
 
 
 class MockLLMBackend(LLMBackend):
     """
-    Deterministic, rule-based stand-in for a real LLM.
-
-    Good enough to exercise the full pipeline (intent extraction, planning,
-    tool routing, synthesis) without any external dependency. Replace with
-    AnthropicLLMBackend or your own for real reasoning quality.
+    Deterministic rule-based stand-in. Covers intent extraction, routing,
+    planning, tool decisions, synthesis, and sub-agent role-play. Runs
+    fully offline with zero dependencies.
     """
 
     def complete(self, prompt: str, system: Optional[str] = None) -> str:
         p = prompt.lower()
 
-        # --- Intent extraction ---
         if "extract the intent" in p:
             if any(k in p for k in ("website", "app", "application", "build")):
                 return "Create Software Project"
@@ -52,14 +41,12 @@ class MockLLMBackend(LLMBackend):
                 return "Research Task"
             return "General Query"
 
-        # --- Complexity / routing decision ---
         if "should this be handled reactively" in p:
-            simple_markers = ("weather", "hello", "hi", "what is", "define")
-            if any(m in p for m in simple_markers) and "build" not in p:
+            simple = ("weather", "hello", "hi", "what is", "define")
+            if any(m in p for m in simple) and "build" not in p:
                 return "REACTIVE"
             return "PLAN"
 
-        # --- Planning ---
         if "produce a numbered plan" in p:
             goal_match = re.search(r"goal:\s*(.+)", prompt, re.IGNORECASE)
             goal = goal_match.group(1).strip() if goal_match else "the task"
@@ -72,26 +59,23 @@ class MockLLMBackend(LLMBackend):
                 "6. Review and deliver"
             ).format(g=goal)
 
-        # --- Tool need decision ---
         if "does answering this require a tool" in p:
             if any(k in p for k in ("weather", "search", "latest", "current", "price")):
                 return "TOOL:web_search"
-            if any(k in p for k in ("calculate", "sum", "average", "compute", "plot", "chart")):
+            if any(k in p for k in ("calculate", "sum", "average", "compute", "plot")):
                 return "TOOL:python"
             if any(k in p for k in ("select", "query", "database", "sql")):
                 return "TOOL:sql"
             return "NONE"
 
-        # --- Final synthesis ---
         if "synthesize a final answer" in p:
             return (
                 "Here is the result assembled from the reasoning pipeline "
                 "(plan, tool output, and retrieved context above)."
             )
 
-        # --- Sub-agent role-play (research/coding/testing/review) ---
         if "act as the research agent" in p:
-            return "Recommended stack: FastAPI + PostgreSQL + a static frontend, deployed with Docker."
+            return "Recommended stack: FastAPI + PostgreSQL + static frontend, deployed with Docker."
         if "act as the coding agent" in p:
             return "Generated a minimal FastAPI backend and a static HTML/JS frontend scaffold."
         if "act as the testing agent" in p:
@@ -104,17 +88,16 @@ class MockLLMBackend(LLMBackend):
 
 class AnthropicLLMBackend(LLMBackend):
     """
-    Real backend using the Anthropic SDK. Requires `pip install anthropic`
-    and `ANTHROPIC_API_KEY` set in the environment.
+    Real backend using the Anthropic SDK.
+    Requires: pip install anthropic  and  ANTHROPIC_API_KEY in environment.
     """
 
     def __init__(self, model: str = "claude-sonnet-4-6", max_tokens: int = 1024):
         try:
             import anthropic  # type: ignore
-        except ImportError as exc:  # pragma: no cover
+        except ImportError as exc:
             raise RuntimeError(
-                "The 'anthropic' package is required for AnthropicLLMBackend. "
-                "Install it with: pip install anthropic"
+                "The 'anthropic' package is required. Install: pip install anthropic"
             ) from exc
 
         api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -126,26 +109,23 @@ class AnthropicLLMBackend(LLMBackend):
         self._max_tokens = max_tokens
 
     def complete(self, prompt: str, system: Optional[str] = None) -> str:
-        kwargs = {
+        kwargs: dict = {
             "model": self._model,
             "max_tokens": self._max_tokens,
             "messages": [{"role": "user", "content": prompt}],
         }
         if system:
             kwargs["system"] = system
-
         response = self._client.messages.create(**kwargs)
         return "".join(
-            block.text for block in response.content if getattr(block, "type", None) == "text"
+            block.text
+            for block in response.content
+            if getattr(block, "type", None) == "text"
         )
 
 
 def get_default_backend() -> LLMBackend:
-    """
-    Returns AnthropicLLMBackend if ANTHROPIC_API_KEY is set and the SDK is
-    importable; otherwise falls back to the offline MockLLMBackend so the
-    harness always runs.
-    """
+    """Auto-selects AnthropicLLMBackend when key is set, else MockLLMBackend."""
     if os.environ.get("ANTHROPIC_API_KEY"):
         try:
             return AnthropicLLMBackend()

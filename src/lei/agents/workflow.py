@@ -1,7 +1,6 @@
 """
-Autonomous Workflow Manager: receive goal -> plan -> assign tasks -> execute
--> evaluate -> retry if needed -> deliver. Includes retry logic, logging,
-and optional human-approval checkpoints.
+Autonomous Workflow Manager: execute -> evaluate -> retry if needed -> deliver.
+Includes retry logic, logging, and optional human-approval checkpoints.
 """
 
 from __future__ import annotations
@@ -11,11 +10,11 @@ import time
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 
-logger = logging.getLogger("agent_harness.workflow")
+logger = logging.getLogger("lei.workflow")
 if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s %(message)s"))
-    logger.addHandler(handler)
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s %(message)s"))
+    logger.addHandler(_handler)
     logger.setLevel(logging.INFO)
 
 
@@ -49,14 +48,14 @@ class AutonomousWorkflowManager:
 
             try:
                 output = execute_fn()
-            except Exception as exc:  # pragma: no cover - defensive
+            except Exception as exc:
                 logger.warning("Execution error on attempt %s: %s", attempt, exc)
                 log.append(f"Attempt {attempt}: error - {exc}")
-                time.sleep(0)  # placeholder for real backoff
+                time.sleep(0)
                 continue
 
             if not evaluate_fn(output):
-                logger.info("Attempt %s failed evaluation, retrying if possible", attempt)
+                logger.info("Attempt %s failed evaluation, retrying", attempt)
                 log.append(f"Attempt {attempt}: failed evaluation")
                 continue
 
@@ -69,5 +68,5 @@ class AutonomousWorkflowManager:
             log.append(f"Attempt {attempt}: success")
             return WorkflowResult(success=True, output=output, attempts=attempts, log=log)
 
-        log.append("All attempts exhausted, delivering best-effort failure")
+        log.append("All attempts exhausted")
         return WorkflowResult(success=False, output=None, attempts=attempts, log=log)

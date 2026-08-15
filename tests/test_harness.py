@@ -1,20 +1,26 @@
 """
-Basic tests exercising every component of the harness offline (MockLLMBackend,
-no network, no API keys). Run with: pytest -q
+Tests for the Lei Reasoning Agent pipeline.
+All tests run offline using MockLLMBackend — no API keys or network needed.
+
+Run with:
+    pytest -q
 """
 
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure the project root and src/ are on the path
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, _root)
+sys.path.insert(0, os.path.join(_root, "src"))
 
-from agent_harness import Orchestrator
-from agent_harness.agents.reactive import build_default_reactive_agent
-from agent_harness.agents.planning import PlanningAgent
-from agent_harness.agents.rag import InMemoryVectorStore, SimpleEmbedder
-from agent_harness.agents.workflow import AutonomousWorkflowManager
-from agent_harness.llm import MockLLMBackend
-from agent_harness.tools import get_tool_registry
+from lei import Orchestrator
+from lei.agents.planning import PlanningAgent
+from lei.agents.rag import InMemoryVectorStore, SimpleEmbedder
+from lei.agents.reactive import build_default_reactive_agent
+from lei.agents.workflow import AutonomousWorkflowManager
+from lei.llm import MockLLMBackend
+from lei.tools import get_tool_registry
 
 
 def test_reactive_agent_matches_greeting():
@@ -31,8 +37,7 @@ def test_reactive_agent_no_match_returns_none():
 
 
 def test_planning_agent_produces_ordered_steps():
-    llm = MockLLMBackend()
-    planner = PlanningAgent(llm)
+    planner = PlanningAgent(MockLLMBackend())
     steps = planner.plan("Create an e-commerce website")
     assert len(steps) >= 3
     assert steps[0].index == 1
@@ -62,9 +67,7 @@ def test_workflow_manager_retries_and_succeeds():
 
     def flaky_execute():
         attempts["count"] += 1
-        if attempts["count"] < 2:
-            return ""  # fails evaluate_fn (empty output)
-        return "done"
+        return "" if attempts["count"] < 2 else "done"
 
     result = manager.run("test goal", execute_fn=flaky_execute)
     assert result.success
@@ -80,24 +83,25 @@ def test_workflow_manager_exhausts_retries_and_fails():
 
 
 def test_orchestrator_end_to_end_reactive():
-    orchestrator = Orchestrator(long_term_memory_path="test_long_term_memory.json")
-    trace = orchestrator.handle("hello")
+    orch = Orchestrator(long_term_memory_path="test_long_term_memory.json")
+    trace = orch.handle("hello")
     assert trace.handled_reactively
     assert trace.final_response
-
-    if os.path.exists("test_long_term_memory.json"):
-        os.remove("test_long_term_memory.json")
+    _cleanup("test_long_term_memory.json")
 
 
 def test_orchestrator_end_to_end_planned_build():
-    orchestrator = Orchestrator(long_term_memory_path="test_long_term_memory2.json")
-    trace = orchestrator.handle("Build a weather application.")
+    orch = Orchestrator(long_term_memory_path="test_long_term_memory2.json")
+    trace = orch.handle("Build a weather application.")
     assert trace.intent == "Create Software Project"
     assert not trace.handled_reactively
     assert trace.plan
     assert trace.multi_agent_report is not None
     assert trace.workflow_result is not None
     assert trace.final_response
+    _cleanup("test_long_term_memory2.json")
 
-    if os.path.exists("test_long_term_memory2.json"):
-        os.remove("test_long_term_memory2.json")
+
+def _cleanup(path: str) -> None:
+    if os.path.exists(path):
+        os.remove(path)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 from ..llm import LLMBackend
 
@@ -24,22 +24,21 @@ class MultiAgentReport:
 
 class MultiAgentCoordinator:
     """
-    Manager Agent -> Research Agent -> Coding Agent -> Testing Agent -> Review Agent.
-    Each sub-agent is just an LLM call role-playing that agent; swap any of
-    them for a real specialized pipeline (e.g. a real code-execution sandbox
-    for the Coding/Testing agents).
+    Manager -> Research -> Coding -> Testing -> Review pipeline.
+    Each sub-agent is an LLM call role-playing that specialist. Swap any
+    for a real implementation (e.g. code-execution sandbox for Coding/Testing).
     """
 
     DEFAULT_PIPELINE = ["research", "coding", "testing", "review"]
 
-    def __init__(self, llm: LLMBackend, pipeline: List[str] = None):
+    def __init__(self, llm: LLMBackend, pipeline: Optional[List[str]] = None):
         self._llm = llm
         self._pipeline = pipeline or self.DEFAULT_PIPELINE
         self._role_prompts: Dict[str, Callable[[str], str]] = {
-            "research": lambda task: f"Act as the Research Agent. Task: {task}",
-            "coding": lambda task: f"Act as the Coding Agent. Task: {task}",
-            "testing": lambda task: f"Act as the Testing Agent. Task: {task}",
-            "review": lambda task: f"Act as the Review Agent. Task: {task}",
+            "research": lambda t: f"Act as the Research Agent. Task: {t}",
+            "coding":   lambda t: f"Act as the Coding Agent. Task: {t}",
+            "testing":  lambda t: f"Act as the Testing Agent. Task: {t}",
+            "review":   lambda t: f"Act as the Review Agent. Task: {t}",
         }
 
     def run(self, task: str) -> MultiAgentReport:

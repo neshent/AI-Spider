@@ -9,12 +9,11 @@ from typing import Callable, Dict, Optional
 class ReactiveAgent:
     """
     Simple rule-matching agent. Rules are (pattern -> handler) pairs checked
-    in order; first match wins. Falls back to `default_handler` if provided.
+    in order; first match wins. Falls back to default_handler if set.
     """
 
     def __init__(self):
-        self._rules: Dict[str, Callable[[str], str]] = {}
-        self._compiled = []
+        self._compiled: list = []
         self.default_handler: Optional[Callable[[str], str]] = None
 
     def add_rule(self, pattern: str, handler: Callable[[str], str]) -> None:
@@ -33,5 +32,8 @@ def build_default_reactive_agent() -> ReactiveAgent:
     agent = ReactiveAgent()
     agent.add_rule(r"\bhello\b|\bhi\b", lambda r: "Hello! How can I help you today?")
     agent.add_rule(r"\bthanks?\b|\bthank you\b", lambda r: "You're welcome!")
-    agent.add_rule(r"\bwho are you\b", lambda r: "I'm a reasoning agent built on the harness architecture.")
+    agent.add_rule(
+        r"\bwho are you\b",
+        lambda r: "I'm a reasoning agent built on the Lei architecture.",
+    )
     return agent

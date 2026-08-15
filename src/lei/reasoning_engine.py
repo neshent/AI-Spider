@@ -10,7 +10,11 @@ class ReasoningEngine:
         self._llm = llm
 
     def should_react(self, request: str) -> bool:
-        prompt = f"Should this be handled reactively (simple, no planning needed)? Request: {request}"
+        """Returns True if the request is simple enough for a reactive response."""
+        prompt = (
+            f"Should this be handled reactively (simple, no planning needed)? "
+            f"Request: {request}"
+        )
         return self._llm.complete(prompt).strip().upper() == "REACTIVE"
 
     def needs_tool(self, request: str) -> str:
@@ -19,6 +23,7 @@ class ReasoningEngine:
         return self._llm.complete(prompt).strip()
 
     def synthesize(self, request: str, working_context: str) -> str:
+        """Produce a final answer given the request and all gathered context."""
         prompt = (
             "Synthesize a final answer for the user using everything gathered so far.\n"
             f"Original request: {request}\n"

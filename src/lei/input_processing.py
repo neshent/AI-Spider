@@ -1,4 +1,4 @@
-"""Input Processing: validate input, extract intent, maintain context."""
+"""Input Processing: validate input, extract intent, maintain conversation context."""
 
 from __future__ import annotations
 

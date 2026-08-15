@@ -26,5 +26,4 @@ class ToolUsingAgent:
         if tool is None:
             return {"tool_used": None, "output": None}
 
-        output = tool.run(request)
-        return {"tool_used": tool_name, "output": output}
+        return {"tool_used": tool_name, "output": tool.run(request)}

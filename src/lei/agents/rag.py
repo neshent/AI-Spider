@@ -2,9 +2,8 @@
 RAG Agent: Documents -> Embedding -> Vector store -> Retriever -> LLM -> Answer.
 
 Uses a tiny in-memory bag-of-words "embedding" and cosine similarity so it
-runs with zero dependencies. Swap `SimpleEmbedder` for a real embedding
-model and `InMemoryVectorStore` for FAISS/Chroma/Pinecone/Weaviate/Milvus
-in production.
+runs with zero dependencies. Swap SimpleEmbedder / InMemoryVectorStore for
+FAISS, Chroma, Pinecone, etc. in production.
 """
 
 from __future__ import annotations
@@ -23,7 +22,7 @@ def _tokenize(text: str) -> List[str]:
 
 
 class SimpleEmbedder:
-    """Bag-of-words vector as a dict {token: count}. Not a real embedding model."""
+    """Bag-of-words vector as {token: count}. Not a real embedding model."""
 
     def embed(self, text: str) -> Dict[str, int]:
         return dict(Counter(_tokenize(text)))
@@ -56,7 +55,8 @@ class InMemoryVectorStore:
     def search(self, query: str, top_k: int = 3) -> List[Tuple[Document, float]]:
         qvec = self._embedder.embed(query)
         scored = [
-            (doc, _cosine(qvec, vec)) for doc, vec in zip(self._docs, self._vectors)
+            (doc, _cosine(qvec, vec))
+            for doc, vec in zip(self._docs, self._vectors)
         ]
         scored.sort(key=lambda pair: pair[1], reverse=True)
         return [pair for pair in scored[:top_k] if pair[1] > 0]
@@ -76,8 +76,8 @@ class RAGAgent:
         return [doc.text for doc, _score in results]
 
     def answer(self, query: str) -> str:
-        context_chunks = self.retrieve(query)
-        context = "\n---\n".join(context_chunks) if context_chunks else "(no relevant documents found)"
+        chunks = self.retrieve(query)
+        context = "\n---\n".join(chunks) if chunks else "(no relevant documents found)"
         prompt = (
             "Synthesize a final answer for the user using everything gathered so far.\n"
             f"Original request: {query}\n"

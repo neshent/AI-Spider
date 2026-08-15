@@ -1,6 +1,12 @@
 """
-Simple in-process memory implementations. Swap these for a real database
-(SQLite/Postgres) or vector store for persistence across process restarts.
+Memory store implementations.
+
+ShortTermMemory  — current conversation / recent tasks (in-process only).
+LongTermMemory   — persisted preferences, projects, and learned facts (JSON).
+MemoryManager    — facade combining both.
+
+Swap these for a real database (SQLite/Postgres) or vector store for
+production-grade persistence across restarts.
 """
 
 from __future__ import annotations
@@ -30,13 +36,17 @@ class ShortTermMemory:
 
 class LongTermMemory:
     """
-    Persists user preferences, previous projects, and learned knowledge to a
-    JSON file on disk so it survives across sessions.
+    Persists preferences, projects, and learned facts to a JSON file so
+    data survives across sessions.
     """
 
     def __init__(self, path: str = "long_term_memory.json"):
         self._path = path
-        self._data: Dict[str, Any] = {"preferences": {}, "projects": [], "learned": []}
+        self._data: Dict[str, Any] = {
+            "preferences": {},
+            "projects": [],
+            "learned": [],
+        }
         self._load()
 
     def _load(self) -> None:

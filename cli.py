@@ -56,7 +56,7 @@ def build_orchestrator(knowledge_args: list) -> Orchestrator:
 
 
 def run_interactive(orch: Orchestrator, verbose: bool) -> int:
-    print("Lei Reasoning Agent — interactive mode. Ctrl+C or 'exit' to quit.\n")
+    print("Lei -- interactive mode. Ctrl+C or 'exit' to quit.\n")
     try:
         while True:
             request = input("> ").strip()

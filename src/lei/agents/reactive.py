@@ -34,6 +34,6 @@ def build_default_reactive_agent() -> ReactiveAgent:
     agent.add_rule(r"\bthanks?\b|\bthank you\b", lambda r: "You're welcome!")
     agent.add_rule(
         r"\bwho are you\b",
-        lambda r: "I'm a reasoning agent built on the Lei architecture.",
+        lambda r: "I'm Lei, an AI agent built on the Lei architecture.",
     )
     return agent

@@ -40,14 +40,17 @@ async function loadModels() {
     }
     modelSel.innerHTML = '';
     for (const [provider, models] of Object.entries(groups)) {
-      const grp = document.createElement('optgroup');
-      grp.label = providerLabels[provider] || provider;
+      // Use a disabled option as a plain text section header (no optgroup = no colored squares)
+      const header = document.createElement('option');
+      header.disabled = true;
+      header.textContent = '-- ' + (providerLabels[provider] || provider) + ' --';
+      header.style.cssText = 'color:#64748b;font-size:10px;font-weight:700;';
+      modelSel.appendChild(header);
       for (const m of models) {
         const opt = document.createElement('option');
         opt.value = m.id; opt.textContent = m.label;
-        grp.appendChild(opt);
+        modelSel.appendChild(opt);
       }
-      modelSel.appendChild(grp);
     }
     modelSel.value = 'mock';
     modelSel.addEventListener('change', updateUI);

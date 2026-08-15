@@ -12,28 +12,11 @@
   <h1>Lei</h1>
   <div class="model-controls">
     <span class="ctrl-label">Model</span>
-    <select id="modelSelect" title="Select model"></select>
-    <span id="keyBadge" class="key-badge unset">-</span>
-    <div class="token-wrap" id="hfTokenWrap" style="display:none">
-      <span class="ctrl-label">HF Token</span>
-      <input class="token-input" id="hfTokenInput" type="password" placeholder="hf_…" autocomplete="off" />
-    </div>
+    <select id="modelSelect" title="No models available" disabled>
+      <option value="">No models available</option>
+    </select>
   </div>
 </header>
-
-<div id="modelWarning" style="display:none;background:#451a03;color:#fcd34d;font-size:11px;padding:5px 18px;flex-shrink:0;"></div>
-
-<div id="lmsPanelWrap" style="display:none">
-  <div class="lms-panel">
-    <label>LM Studio URL</label>
-    <input class="lms-input lms-url" id="lmsUrl" type="text" value="http://localhost:1234" />
-    <label>Model</label>
-    <input class="lms-input lms-model" id="lmsModel" type="text" placeholder="auto (uses loaded model)" />
-    <button class="lms-probe-btn" onclick="probeLMStudio()">Check Connection</button>
-    <span id="lmsStatus" class="lms-status"></span>
-    <span id="lmsModelHint" class="lms-model-hint"></span>
-  </div>
-</div>
 
 <div class="layout">
   <div class="chat-panel">

@@ -3,7 +3,6 @@ const messagesEl = document.getElementById('messages');
 const inputEl    = document.getElementById('userInput');
 const sendBtn    = document.getElementById('sendBtn');
 const stopBtn    = document.getElementById('stopBtn');
-const traceEl    = document.getElementById('traceContent');
 const modelSel   = document.getElementById('modelSelect');
 const keyBadge   = document.getElementById('keyBadge');
 const hfWrap     = document.getElementById('hfTokenWrap');
@@ -286,7 +285,7 @@ async function sendMessage() {
       scrollBottom();
 
     } else if (type === 'pipeline') {
-      try { renderTrace(JSON.parse(data), model); } catch(e) {}
+      // pipeline trace removed
     } else if (type === 'error') {
       cursor.remove();
       bubble.textContent = 'Error: ' + data;
@@ -315,53 +314,6 @@ async function sendMessage() {
     sendBtn.disabled = false;
     inputEl.focus(); scrollBottom();
   }
-}
-
-/* ── Trace rendering ─────────────────────────────────────────────────────── */
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function card(title, body, badgeText, badgeCls) {
-  return `<div class="trace-card">
-    <div class="trace-card-header"
-      onclick="const b=this.nextElementSibling;b.style.display=b.style.display==='none'?'':'none'">
-      ${title}${badgeText ? `<span class="badge ${badgeCls}">${esc(String(badgeText))}</span>` : ''}
-    </div>
-    <div class="trace-card-body">${esc(body)}</div>
-  </div>`;
-}
-
-function renderTrace(d, modelId) {
-  const label = modelSel.options[modelSel.selectedIndex]?.text || modelId;
-  let html = card('Model', label, null, '');
-
-  if (d.intent)
-    html += card('Intent', d.intent, null, '');
-
-  html += d.handled_reactively
-    ? card('Routing', 'Handled reactively — no planning needed.', 'reactive', 'amber')
-    : card('Routing', 'Routed through full planning pipeline.', 'planned', 'blue');
-
-  if (d.plan?.length)
-    html += card('Plan', d.plan.map(s => `${s.index}. ${s.description}`).join('\n'), `${d.plan.length} steps`, 'purple');
-
-  if (d.retrieved_context?.length)
-    html += card('RAG', d.retrieved_context.join('\n\n---\n\n'), `${d.retrieved_context.length} chunk(s)`, 'blue');
-
-  if (d.tool_used)
-    html += card('Tool', `Tool: ${d.tool_used}\n\nOutput:\n${d.tool_output || '(none)'}`, d.tool_used, 'gray');
-
-  if (d.multi_agent_report)
-    html += card('Multi-Agent', d.multi_agent_report, null, '');
-
-  if (d.workflow) {
-    const ok = d.workflow.success;
-    html += card('Workflow', `Attempts: ${d.workflow.attempts}\nSuccess: ${d.workflow.success}`,
-      ok ? 'success' : 'failed', ok ? 'green' : 'red');
-  }
-
-  traceEl.innerHTML = html;
 }
 
 /* ── Knowledge ───────────────────────────────────────────────────────────── */

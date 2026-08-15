@@ -55,23 +55,6 @@
       <button id="stopBtn" onclick="stopGeneration()" title="Stop generation">Stop</button>
     </div>
   </div>
-
-  <div class="trace-panel">
-    <h2>Pipeline Trace</h2>
-    <div class="trace-content" id="traceContent">
-      <p class="trace-empty">Run a query to see the pipeline trace.</p>
-    </div>
-    <details>
-      <div class="knowledge-section">
-        <summary>Add RAG Knowledge</summary>
-        <div class="kform">
-          <input id="kDocId" type="text" placeholder="Document ID (e.g. api_docs)" />
-          <textarea id="kText" rows="3" placeholder="Document text…"></textarea>
-          <button onclick="addKnowledge()">Add to Knowledge Base</button>
-        </div>
-      </div>
-    </details>
-  </div>
 </div>
 
 <script src="/static/app.js"></script>

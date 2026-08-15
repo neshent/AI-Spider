@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Command-line interface for the Lei Reasoning Agent.
+cli.py — Command-line interface for Lei.
+
+Talks exclusively to backend.core. Does not import from src/lei or app/ directly.
 
 Usage:
-    python cli.py "Build a weather application."
-    python cli.py "What's today's weather?"
+    python cli.py "What is machine learning?"
     python cli.py --interactive
     python cli.py --knowledge doc1="FastAPI is a Python web framework." "Build an API."
 """
@@ -14,86 +15,85 @@ from __future__ import annotations
 import argparse
 import sys
 
-from src.lei import Orchestrator
+from backend import AgentRequest, AgentResponse, backend
 
 
-def print_trace(trace, verbose: bool) -> None:
-    if verbose:
-        print(f"\n--- intent: {trace.intent} ---")
-        if trace.handled_reactively:
+# ---------------------------------------------------------------------------
+# Output helpers
+# ---------------------------------------------------------------------------
+
+def print_response(response: AgentResponse, verbose: bool) -> None:
+    if not response.success:
+        print(f"\n[error] {response.error}\n")
+        return
+    if verbose and response.intent:
+        print(f"\n--- intent: {response.intent} ---")
+        if response.handled_reactively:
             print("[handled reactively]")
-        if trace.plan:
+        if response.plan:
             print("plan:")
-            for step in trace.plan:
-                print(f"  {step.index}. {step.description}")
-        if trace.retrieved_context:
-            print(f"retrieved {len(trace.retrieved_context)} context chunk(s)")
-        if trace.tool_used:
-            print(f"tool used: {trace.tool_used}\n  -> {trace.tool_output}")
-        if trace.multi_agent_report:
-            print("multi-agent report:")
-            print(trace.multi_agent_report.summary())
-        if trace.workflow_result:
-            wr = trace.workflow_result
-            print(f"workflow attempts: {wr.attempts}, success: {wr.success}")
+            for step in response.plan:
+                print(f"  {step['index']}. {step['description']}")
+        if response.tool_used:
+            print(f"tool: {response.tool_used} -> {response.tool_output}")
         print("---")
-    print(f"\n{trace.final_response}\n")
+    print(f"\n{response.text}\n")
 
 
-def build_orchestrator(knowledge_args: list) -> Orchestrator:
-    orch = Orchestrator()
-    # Default knowledge seed
-    orch.add_knowledge(
-        "stack_notes",
-        "FastAPI is a modern, fast Python web framework for building APIs. "
-        "SQLite and PostgreSQL are common relational databases.",
-    )
-    for entry in knowledge_args:
-        if "=" in entry:
-            doc_id, text = entry.split("=", 1)
-            orch.add_knowledge(doc_id.strip(), text.strip())
-    return orch
+# ---------------------------------------------------------------------------
+# Interactive REPL
+# ---------------------------------------------------------------------------
 
-
-def run_interactive(orch: Orchestrator, verbose: bool) -> int:
-    print("Lei -- interactive mode. Ctrl+C or 'exit' to quit.\n")
+def run_interactive(verbose: bool) -> int:
+    print("Lei — interactive mode. Type 'exit' to quit.\n")
     try:
         while True:
-            request = input("> ").strip()
-            if request.lower() in ("exit", "quit"):
+            message = input("> ").strip()
+            if message.lower() in ("exit", "quit"):
                 break
-            if not request:
+            if not message:
                 continue
-            trace = orch.handle(request)
-            print_trace(trace, verbose=verbose)
+            req      = AgentRequest(message=message)
+            response = backend.handle(req)
+            print_response(response, verbose=verbose)
     except (KeyboardInterrupt, EOFError):
         print("\nBye!")
     return 0
 
 
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Lei Reasoning Agent CLI")
-    parser.add_argument("request", nargs="?", help="The request to process.")
-    parser.add_argument("--interactive", action="store_true", help="Start an interactive REPL.")
-    parser.add_argument("--quiet", action="store_true", help="Suppress pipeline trace output.")
+    parser = argparse.ArgumentParser(description="Lei CLI")
+    parser.add_argument("request",       nargs="?",        help="Message to send.")
+    parser.add_argument("--interactive", action="store_true", help="Start interactive REPL.")
+    parser.add_argument("--quiet",       action="store_true", help="Hide pipeline details.")
     parser.add_argument(
         "--knowledge", action="append", default=[],
-        help="Seed the RAG knowledge base: --knowledge doc1='some text'",
+        metavar="id=text",
+        help="Seed RAG knowledge: --knowledge doc1='some text'",
     )
     args = parser.parse_args()
 
-    orch = build_orchestrator(args.knowledge)
+    # Seed knowledge from CLI flags
+    for entry in args.knowledge:
+        if "=" in entry:
+            doc_id, text = entry.split("=", 1)
+            backend.add_knowledge(doc_id.strip(), text.strip())
 
     if args.interactive:
-        return run_interactive(orch, verbose=not args.quiet)
+        return run_interactive(verbose=not args.quiet)
 
     if not args.request:
         parser.print_help()
         return 1
 
-    trace = orch.handle(args.request)
-    print_trace(trace, verbose=not args.quiet)
-    return 0
+    req      = AgentRequest(message=args.request)
+    response = backend.handle(req)
+    print_response(response, verbose=not args.quiet)
+    return 0 if response.success else 1
 
 
 if __name__ == "__main__":

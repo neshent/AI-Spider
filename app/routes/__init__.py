@@ -1,7 +1,1 @@
-"""Flask route blueprints."""
-
-from .chat import chat_bp
-from .knowledge import knowledge_bp
-from .models import models_bp
-
-__all__ = ["chat_bp", "knowledge_bp", "models_bp"]
+"""Routes package — all routes now live directly in web_app.py."""

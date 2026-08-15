@@ -26,13 +26,13 @@ async function loadModels() {
     _lmsData = data.lmstudio || { running: false, models: [] };
 
     const providerLabels = {
-      mock:       '⚙  Offline',
-      lmstudio:   '🖥  LM Studio (local server)',
-      'hf-local': '🆓 HuggingFace Local (no account)',
-      'hf-api':   '🆓 HuggingFace API (free token)',
-      anthropic:  '💳 Anthropic',
-      openai:     '💳 OpenAI',
-      google:     '💳 Google',
+      mock:       'Offline',
+      lmstudio:   'LM Studio (local server)',
+      'hf-local': 'HuggingFace Local (no account)',
+      'hf-api':   'HuggingFace API (free token)',
+      anthropic:  'Anthropic',
+      openai:     'OpenAI',
+      google:     'Google',
     };
     const groups = {};
     for (const m of data.models) {
@@ -320,30 +320,30 @@ function card(title, body, badgeText, badgeCls) {
 
 function renderTrace(d, modelId) {
   const label = modelSel.options[modelSel.selectedIndex]?.text || modelId;
-  let html = card('🧠 Model', label, null, '');
+  let html = card('Model', label, null, '');
 
   if (d.intent)
-    html += card('🎯 Intent', d.intent, null, '');
+    html += card('Intent', d.intent, null, '');
 
   html += d.handled_reactively
-    ? card('⚡ Routing', 'Handled reactively — no planning needed.', 'reactive', 'amber')
-    : card('🗺️ Routing', 'Routed through full planning pipeline.', 'planned', 'blue');
+    ? card('Routing', 'Handled reactively — no planning needed.', 'reactive', 'amber')
+    : card('Routing', 'Routed through full planning pipeline.', 'planned', 'blue');
 
   if (d.plan?.length)
-    html += card('📋 Plan', d.plan.map(s => `${s.index}. ${s.description}`).join('\n'), `${d.plan.length} steps`, 'purple');
+    html += card('Plan', d.plan.map(s => `${s.index}. ${s.description}`).join('\n'), `${d.plan.length} steps`, 'purple');
 
   if (d.retrieved_context?.length)
-    html += card('📚 RAG', d.retrieved_context.join('\n\n---\n\n'), `${d.retrieved_context.length} chunk(s)`, 'blue');
+    html += card('RAG', d.retrieved_context.join('\n\n---\n\n'), `${d.retrieved_context.length} chunk(s)`, 'blue');
 
   if (d.tool_used)
-    html += card('🔧 Tool', `Tool: ${d.tool_used}\n\nOutput:\n${d.tool_output || '(none)'}`, d.tool_used, 'gray');
+    html += card('Tool', `Tool: ${d.tool_used}\n\nOutput:\n${d.tool_output || '(none)'}`, d.tool_used, 'gray');
 
   if (d.multi_agent_report)
-    html += card('🤝 Multi-Agent', d.multi_agent_report, null, '');
+    html += card('Multi-Agent', d.multi_agent_report, null, '');
 
   if (d.workflow) {
     const ok = d.workflow.success;
-    html += card('🔄 Workflow', `Attempts: ${d.workflow.attempts}\nSuccess: ${d.workflow.success}`,
+    html += card('Workflow', `Attempts: ${d.workflow.attempts}\nSuccess: ${d.workflow.success}`,
       ok ? 'success' : 'failed', ok ? 'green' : 'red');
   }
 
